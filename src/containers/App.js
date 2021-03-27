@@ -1,64 +1,66 @@
-import React, { Component } from "react"
+import React, { useState, useEffect } from "react"
 import CardList from "../components/CardList"
 import SearchBox from "../components/SearchBox"
 import Scroll from "../components/Scroll"
+import ErrorBoundary from "../components/ErrorBoundry"
 // import { robots } from "./robots"
 
 import "./App.css"
-import { robots } from "../robots"
 
-// class = object
-// have state = smart component -> class syntax
-class App extends Component {
-  constructor() {
-    // constructor of component
-    super()
-    // state = live in parent component
-    this.state = {
-      // state = description of App
-      robots: [],
-      searchfield: "",
-    }
-  }
+function App() {
+  // robots = state
+  // setRobots = function change the robots
+  // const [state, function change state] = useState(initial state)
+  // array destructuring
+  const [robots, setRobots] = useState([])
+  const [searchfield, setSearchfield] = useState("")
+  const [count, setCount] = useState(0)
 
-  // run when the page loaded
-  // update the state
-  componentDidMount() {
-    // window.fetch() = make req to server
+  // useEffect(side effect, optional list/ dependency(effect will only activate if the calues in the list change))
+  // dependency = when should run useEfeffect, [] = skip the useEffect if values haven't change between rerender
+  // only run when the value have changed
+  // get run every time the function App gets run
+  // default run every time when App render
+
+  // only run useEffect when the component mounted/ App rendered (first load the page)
+  useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((response) => response.json())
-      .then((users) => this.setState({ robots: users }))
+      .then((users) => {
+        // update the robots state with new users
+        setRobots(users)
+      })
+    console.log(count)
+  }, [count]) // only run if count changes
+
+  const onSearchChange = (event) => {
+    // change the searchfield state
+    setSearchfield(event.target.value)
   }
 
-  // use arrow function, this = App
-  onSearchChange = (event) => {
-    // = this.state.searchfield
-    // updated searchfield
-    this.setState({ searchfield: event.target.value })
-    // this = refer to input
-  }
+  const filteredRobots = robots.filter((robot) => {
+    return robot.name.toLocaleLowerCase().includes(searchfield.toLocaleLowerCase())
+  })
 
-  render() {
-    const { robots, searchfield } = this.state
-    const filteredRobots = robots.filter((robot) => {
-      return robot.name.toLocaleLowerCase().includes(searchfield.toLocaleLowerCase())
-    })
+  // console.log(robots, searchfield)
 
-    if (!robots.length) {
-      return <h1>Loading</h1>
-    } else {
-      return (
-        <div className="tc">
-          <h1 className="f1">RoboFriends</h1>
-          <SearchBox searchChange={this.onSearchChange} />
-          {/* can only wrap component */}
-          <Scroll>
-            {/* pass through props */}
+  if (!robots.length) {
+    return <h1>Loading</h1>
+  } else {
+    return (
+      <div className="tc">
+        <h1 className="f1">RoboFriends</h1>
+        <button onClick={() => setCount(count + 1)}>Click Me!</button>
+        <SearchBox searchChange={onSearchChange} />
+        {/* can only wrap component */}
+        <Scroll>
+          {/* pass through props */}
+          <ErrorBoundary>
             <CardList robots={filteredRobots} />
-          </Scroll>
-        </div>
-      )
-    }
+          </ErrorBoundary>
+        </Scroll>
+      </div>
+    )
   }
 }
 
